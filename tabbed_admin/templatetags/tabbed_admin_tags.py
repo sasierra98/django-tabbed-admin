@@ -21,7 +21,11 @@ def render_tab_fieldsets_inlines(context, entry):
             'TEMPLATE_CONTEXT_PROCESSORS')
     request = context['request']
     obj = context.get('original', None)
-    readonly_fields = admin_form.model_admin.get_readonly_fields(request, obj)
+    # readonly_fields = admin_form.model_admin.get_readonly_fields(request, obj)
+    if not admin_form.model_admin.has_change_permission(request, obj):
+        readonly_fields = list(admin_form.form.all_fields.keys())
+    else:
+        readonly_fields = admin_form.model_admin.get_readonly_fields(request, obj)
     inline_matching = {}
     if "inline_admin_formsets" in context:
         inline_matching = dict((inline.opts.__class__.__name__, inline)
