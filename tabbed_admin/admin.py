@@ -7,7 +7,6 @@ from .settings import USE_JQUERY_UI, JQUERY_UI_CSS, JQUERY_UI_JS
 
 class TabbedModelAdmin(ModelAdmin):
     tabs = None
-    formatted_tabs = {}
 
     # Needs a specific template to display the tabs
     change_form_template = 'tabbed_admin/change_form.html'
@@ -67,8 +66,8 @@ class TabbedModelAdmin(ModelAdmin):
         Returns the formated tabs attribute.
         """
         if self.tabs:
-            self.parse_fieldsets_inlines_from_tabs(request, obj)
-        return self.formatted_tabs
+            return self.parse_fieldsets_inlines_from_tabs(request, obj)
+        return {}
 
     def parse_fieldsets_inlines_from_tabs(self, request, obj=None):
         """
@@ -77,7 +76,8 @@ class TabbedModelAdmin(ModelAdmin):
         """
         tabs_fieldsets = ()
         tabs_inlines = ()
-        self.formatted_tabs['fields'] = []
+        formatted_tabs = {}
+        formatted_tabs['fields'] = []
         for tab in self.get_tabs(request, obj):
             # Checks that each tab if formated with 2 arguments, verbose name
             # of the tab and the tab configuration.
@@ -103,9 +103,11 @@ class TabbedModelAdmin(ModelAdmin):
                     formatted_tab_entry = {'type': 'inline',
                                            'name': tab_entry.__name__}
                 formatted_tab['entries'].append(formatted_tab_entry)
-            self.formatted_tabs['fields'].append(formatted_tab)
-        self.formatted_tabs['fieldsets'] = tabs_fieldsets
-        self.formatted_tabs['inlines'] = tabs_inlines
+            formatted_tabs['fields'].append(formatted_tab)
+        formatted_tabs['fieldsets'] = tabs_fieldsets
+        formatted_tabs['inlines'] = tabs_inlines
+
+        return formatted_tabs
 
     def add_view(self, request, form_url='', extra_context=None):
         """
