@@ -1,5 +1,10 @@
+from typing import Optional, List
+
+from django.db import models
+from django.core.handlers.wsgi import WSGIRequest
+
 from django.conf import settings
-from django.contrib.admin.options import ModelAdmin
+from django.contrib.admin.options import ModelAdmin, InlineModelAdmin
 from django.utils.translation import ugettext_lazy as _
 
 from .settings import USE_JQUERY_UI, JQUERY_UI_CSS, JQUERY_UI_JS
@@ -18,28 +23,17 @@ class TabbedModelAdmin(ModelAdmin):
         If the tabs attribute is not set, use the default ModelAdmin method.
         """
         tabs_fieldsets = self.get_formatted_tabs(request, obj)['fieldsets']
+        fieldsets = self.fieldsets
         if self.tabs is not None:
-            self.fieldsets = ()
-        self.fieldsets = self.add_tabbed_item(tabs_fieldsets, self.fieldsets)
-        return super(TabbedModelAdmin, self).get_fieldsets(request, obj)
+            fieldsets = ()
+        return self.add_tabbed_item(tabs_fieldsets, fieldsets)
 
-    def get_inline_instances(self, request, obj=None):
-        """
-        Overwrites BaseModelAdmin fieldsets to add fieldsets passed by the
-        tabs.
-        If the tabs attribute is not set, use the default ModelAdmin method.
-        """
+    def get_inlines(self, request: WSGIRequest, obj: Optional[models.Model] = None) -> List[InlineModelAdmin]:
+        inlines = self.inlines
         if self.tabs is not None:
-            self.inlines = ()
+            inlines = ()
         tabs_inlines = self.get_formatted_tabs(request, obj)['inlines']
-        self.inlines = self.add_tabbed_item(tabs_inlines, self.inlines)
-
-        try:
-            # django >=1.7
-            return super(TabbedModelAdmin, self)\
-                .get_inline_instances(request, obj)
-        except TypeError:
-            return super(TabbedModelAdmin, self).get_inline_instances(request)
+        return self.add_tabbed_item(tabs_inlines, inlines)
 
     def add_tabbed_item(self, items_to_add, collection):
         """
